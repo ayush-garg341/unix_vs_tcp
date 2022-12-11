@@ -38,50 +38,62 @@ int main(){
 
  // waiting for the client to connect after listen() function call
 	printf("WAITING FOR THE CLIENT\n");
-	msgsocket = accept(sock, 0, 0);
-	printf("server: accept()\n");
-	if (msgsocket == -1){
-		perror("accept");
-	}	else{
-		char msg1[] = "Sleep";
-		if(write(msgsocket, msg1, sizeof(msg1))<0){
-			perror("writing on upstream socket");
-			exit(1);
-		}
-		printf("The server requests the client to sleep\n");
-
+	int pid;
 		while(1){
-			bzero(buf, sizeof(buf));
-			if((rval = read(msgsocket, buf, 1024))<0){
-				perror("reading stream message");
-			}
-			else if(rval==0){
-				continue;
-			}
-			else{
-				if(strcmp("Done\n", buf)==0){
-					printf("Message from the client : %s\n",buf);
-					break;
+			msgsocket = accept(sock, 0, 0);
+			printf("server: accept()\n");
+			if (msgsocket == -1){
+				perror("accept");
+			}	else{
+				char msg1[] = "Sleep";
+				if(write(msgsocket, msg1, sizeof(msg1))<0){
+					perror("writing on upstream socket");
+					exit(1);
 				}
-				else{
-					printf("Message from the client : %s\n", buf);
-					char ok_msg[] = "Ok, got it";
-					if(write(msgsocket, ok_msg, sizeof(ok_msg))<0){
-						perror("writing on upstream socket");
-						exit(1);
+				printf("The server requests the client to sleep\n");
+			}
+			if (msgsocket < 0){
+				perror("Error on accept");
+			}
+			pid = fork();
+			if (pid < 0) {
+          perror("ERROR in new process creation");
+      }
+			if (pid==0){
+				printf("Child Process\n");
+				while(1){
+					bzero(buf, sizeof(buf));
+					if((rval = read(msgsocket, buf, 1024))<0){
+						perror("reading stream message");
+					}
+					else if(rval==0){
+						continue;
+					}
+					else{
+						if(strcmp("Done\n", buf)==0){
+							printf("Message from the client : %s\n",buf);
+							break;
+						}
+						else{
+							printf("Message from the client : %s\n", buf);
+							char ok_msg[] = "Ok, got it";
+							if(write(msgsocket, ok_msg, sizeof(ok_msg))<0){
+								perror("writing on upstream socket");
+								exit(1);
+							}
+						}
+						continue;
 					}
 				}
-				continue;
+				char msg2[]="Quit";
+				if (write(msgsocket, msg2, sizeof(msg2)) < 0)
+					perror("writing on stream socket");
+				printf("The server requests the client to quit\n");
+				close(msgsocket);
 			}
 		}
-		char msg2[]="Quit";
-		if (write(msgsocket, msg2, sizeof(msg2)) < 0)
-			perror("writing on stream socket");
-		printf("The server requests the client to quit\n");
-	}
-	close(msgsocket);
-	unlink(NAME);
-	close(sock);
+		close(sock);
+		unlink(NAME);
 }
 
 void sigintHandler(int sig){
