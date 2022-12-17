@@ -6,3 +6,12 @@
 		- In one terminal run server executable (./server.out)
 		- In other terminal run client executable (./client.out)
 - Python implementation of unix and tcp socket
+		- python3 server.py
+		- python3 client.py
+
+- Different branches
+	- unix_socket_c -> unix socket imeplementation in c
+	- unix_socket_c_multiclient -> multiple clients can connect to same server.
+	- tcp_socket -> tcp socket implementation in c
+	- unix_socket_python -> unix socket in python
+	- tcp_socket_python -> tcp socket in python
